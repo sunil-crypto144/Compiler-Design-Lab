@@ -1,0 +1,61 @@
+from collections import defaultdict, deque
+
+# NFA representation
+nfa = {
+    0: {'a': [0, 1], 'b': [0]},
+    1: {'b': [2]},
+    2: {}
+}
+
+start_state = 0
+accept_states = {2}
+alphabet = ['a', 'b']
+
+
+def epsilon_closure(states):
+    return set(states)
+
+
+def move(states, symbol):
+    result = set()
+    for state in states:
+        if symbol in nfa[state]:
+            result.update(nfa[state][symbol])
+    return result
+
+
+def nfa_to_dfa():
+    dfa_states = []
+    dfa_transitions = {}
+    queue = deque()
+
+    start = frozenset(epsilon_closure([start_state]))
+    queue.append(start)
+    dfa_states.append(start)
+
+    while queue:
+        current = queue.popleft()
+        dfa_transitions[current] = {}
+
+        for symbol in alphabet:
+            next_state = frozenset(epsilon_closure(move(current, symbol)))
+
+            dfa_transitions[current][symbol] = next_state
+
+            if next_state not in dfa_states:
+                dfa_states.append(next_state)
+                queue.append(next_state)
+
+    return dfa_states, dfa_transitions
+
+
+dfa_states, dfa_transitions = nfa_to_dfa()
+
+print("DFA States:")
+for state in dfa_states:
+    print(state)
+
+print("\nDFA Transitions:")
+for state in dfa_transitions:
+    for symbol in dfa_transitions[state]:
+        print(f"{state} --{symbol}--> {dfa_transitions[state][symbol]}")
