@@ -1,0 +1,81 @@
+from collections import defaultdict
+
+# -------- LEFT RECURSION REMOVAL --------
+def remove_left_recursion(grammar):
+    new_grammar = {}
+    
+    for non_terminal in grammar:
+        alpha = []
+        beta = []
+        
+        for production in grammar[non_terminal]:
+            if production.startswith(non_terminal):
+                alpha.append(production[len(non_terminal):])
+            else:
+                beta.append(production)
+        
+        if alpha:
+            new_nt = non_terminal + "'"
+            new_grammar[non_terminal] = [b + new_nt for b in beta]
+            new_grammar[new_nt] = [a + new_nt for a in alpha] + ['ε']
+        else:
+            new_grammar[non_terminal] = grammar[non_terminal]
+    
+    return new_grammar
+
+
+# -------- LEFT FACTORING --------
+def left_factoring(grammar):
+    new_grammar = {}
+    
+    for non_terminal in grammar:
+        productions = grammar[non_terminal]
+        prefix_map = defaultdict(list)
+        
+        for prod in productions:
+            prefix_map[prod[0]].append(prod)
+        
+        if len(prefix_map) == 1:
+            key = list(prefix_map.keys())[0]
+            group = prefix_map[key]
+            
+            if len(group) > 1:
+                new_nt = non_terminal + "'"
+                new_grammar[non_terminal] = [key + new_nt]
+                new_grammar[new_nt] = [g[1:] if len(g) > 1 else 'ε' for g in group]
+            else:
+                new_grammar[non_terminal] = productions
+        else:
+            new_grammar[non_terminal] = productions
+    
+    return new_grammar
+
+
+# -------- EXAMPLE --------
+grammar = {
+    "E": ["E+T", "T"],
+    "T": ["T*F", "F"],
+    "F": ["id"]
+}
+
+print("Original Grammar:")
+for k, v in grammar.items():
+    print(f"{k} -> {' | '.join(v)}")
+
+# Remove Left Recursion
+grammar_no_lr = remove_left_recursion(grammar)
+
+print("\nAfter Removing Left Recursion:")
+for k, v in grammar_no_lr.items():
+    print(f"{k} -> {' | '.join(v)}")
+
+# Left Factoring Example
+grammar2 = {
+    "S": ["ifEthenSelseS", "ifEthenS"]
+}
+
+factored = left_factoring(grammar2)
+
+print("\nAfter Left Factoring:")
+for k, v in factored.items():
+    print(f"{k} -> {' | '.join(v)}")
