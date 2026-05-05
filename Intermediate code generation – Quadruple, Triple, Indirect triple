@@ -1,0 +1,41 @@
+# Expression: A = B + C * D
+
+def generate_code():
+    quadruples = []
+    triples = []
+    temp_count = 1
+
+    # Step 1: C * D
+    t1 = f"t{temp_count}"
+    quadruples.append(('*', 'C', 'D', t1))
+    triples.append(('*', 'C', 'D'))
+    temp_count += 1
+
+    # Step 2: B + t1
+    t2 = f"t{temp_count}"
+    quadruples.append(('+', 'B', t1, t2))
+    triples.append(('+', 'B', '(0)'))
+    temp_count += 1
+
+    # Step 3: A = t2
+    quadruples.append(('=', t2, '-', 'A'))
+    triples.append(('=', '(1)', 'A'))
+
+    return quadruples, triples
+
+
+quad, tri = generate_code()
+
+print("Quadruples:")
+for i, q in enumerate(quad):
+    print(i, q)
+
+print("\nTriples:")
+for i, t in enumerate(tri):
+    print(i, t)
+
+
+# Indirect Triple (pointer table)
+print("\nIndirect Triple Pointer Table:")
+for i in range(len(tri)):
+    print(f"P{i} -> {i}")
