@@ -1,0 +1,45 @@
+# Stack Allocation Simulation
+
+class StackAllocator:
+    def __init__(self, size):
+        self.stack = [None] * size
+        self.top = -1
+        self.size = size
+
+    def push(self, value):
+        if self.top == self.size - 1:
+            print("Stack Overflow")
+            return
+        self.top += 1
+        self.stack[self.top] = value
+        print(f"Pushed: {value}")
+
+    def pop(self):
+        if self.top == -1:
+            print("Stack Underflow")
+            return None
+        value = self.stack[self.top]
+        self.top -= 1
+        print(f"Popped: {value}")
+        return value
+
+    def display(self):
+        print("Current Stack:", self.stack[:self.top+1])
+
+
+# -------- TEST --------
+stack = StackAllocator(5)
+
+# Simulating function calls
+stack.push("main()")
+stack.push("func1()")
+stack.push("func2()")
+
+stack.display()
+
+# Returning from functions
+stack.pop()
+stack.pop()
+stack.pop()
+
+stack.display()
