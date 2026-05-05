@@ -1,0 +1,71 @@
+# Compute LEADING and TRAILING
+
+grammar = {
+    "E": ["E+T", "T"],
+    "T": ["T*F", "F"],
+    "F": ["(E)", "id"]
+}
+
+leading = {nt: set() for nt in grammar}
+trailing = {nt: set() for nt in grammar}
+
+
+# -------- LEADING --------
+def compute_leading():
+    changed = True
+    while changed:
+        changed = False
+        for nt in grammar:
+            for prod in grammar[nt]:
+                first = prod[0]
+
+                # If first symbol is terminal
+                if not first.isupper():
+                    if first not in leading[nt]:
+                        leading[nt].add(first)
+                        changed = True
+
+                # If first symbol is non-terminal
+                else:
+                    before = len(leading[nt])
+                    leading[nt] |= leading[first]
+                    if len(leading[nt]) > before:
+                        changed = True
+
+
+# -------- TRAILING --------
+def compute_trailing():
+    changed = True
+    while changed:
+        changed = False
+        for nt in grammar:
+            for prod in grammar[nt]:
+                last = prod[-1]
+
+                # If last symbol is terminal
+                if not last.isupper():
+                    if last not in trailing[nt]:
+                        trailing[nt].add(last)
+                        changed = True
+
+                # If last symbol is non-terminal
+                else:
+                    before = len(trailing[nt])
+                    trailing[nt] |= trailing[last]
+                    if len(trailing[nt]) > before:
+                        changed = True
+
+
+# Run computations
+compute_leading()
+compute_trailing()
+
+
+# -------- OUTPUT --------
+print("LEADING:")
+for nt in leading:
+    print(f"{nt} -> {leading[nt]}")
+
+print("\nTRAILING:")
+for nt in trailing:
+    print(f"{nt} -> {trailing[nt]}")
