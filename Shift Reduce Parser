@@ -1,0 +1,47 @@
+# Shift Reduce Parser
+
+stack = []
+input_string = "id+id*id"
+grammar = {
+    "E+E": "E",
+    "E*E": "E",
+    "id": "E"
+}
+
+print("Stack\t\tInput\t\tAction")
+
+i = 0
+while True:
+
+    # Shift operation
+    if i < len(input_string):
+        stack.append(input_string[i])
+        i += 1
+        print("".join(stack), "\t\t", input_string[i:], "\t\tShift")
+
+    # Try reduction
+    reduced = True
+    while reduced:
+        reduced = False
+        stack_str = "".join(stack)
+
+        for rule in grammar:
+            if rule in stack_str:
+                index = stack_str.index(rule)
+                
+                # Replace RHS with LHS
+                stack_str = stack_str.replace(rule, grammar[rule], 1)
+                stack = list(stack_str)
+
+                print("".join(stack), "\t\t", input_string[i:], "\t\tReduce", rule, "->", grammar[rule])
+                reduced = True
+                break
+
+    if i >= len(input_string):
+        break
+
+# Final check
+if "".join(stack) == "E":
+    print("\nString Accepted")
+else:
+    print("\nString Rejected")
