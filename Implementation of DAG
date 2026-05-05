@@ -1,0 +1,69 @@
+# DAG Node
+class Node:
+    def __init__(self, op, left=None, right=None, value=None):
+        self.op = op
+        self.left = left
+        self.right = right
+        self.value = value
+        self.names = []  # variables representing this node
+
+    def __repr__(self):
+        if self.op == 'var':
+            return self.value
+        return f"({self.left} {self.op} {self.right})"
+
+
+class DAG:
+    def __init__(self):
+        self.nodes = []
+
+    def find_node(self, op, left, right):
+        for node in self.nodes:
+            if node.op == op and node.left == left and node.right == right:
+                return node
+        return None
+
+    def get_var_node(self, var):
+        for node in self.nodes:
+            if node.op == 'var' and node.value == var:
+                return node
+        
+        node = Node('var', value=var)
+        self.nodes.append(node)
+        return node
+
+    def make_node(self, op, left, right):
+        existing = self.find_node(op, left, right)
+        if existing:
+            return existing
+
+        node = Node(op, left, right)
+        self.nodes.append(node)
+        return node
+
+
+# -------- BUILD DAG --------
+dag = DAG()
+
+# A = B + C
+b = dag.get_var_node('B')
+c = dag.get_var_node('C')
+n1 = dag.make_node('+', b, c)
+n1.names.append('A')
+
+# D = B + C (reuses same node)
+n2 = dag.make_node('+', b, c)
+n2.names.append('D')
+
+# E = A + D
+n3 = dag.make_node('+', n1, n2)
+n3.names.append('E')
+
+
+# -------- PRINT DAG --------
+print("DAG Nodes:")
+for node in dag.nodes:
+    if node.op == 'var':
+        print(f"Var Node: {node.value}")
+    else:
+        print(f"Op Node: {node.left} {node.op} {node.right} -> {node.names}")
