@@ -1,0 +1,87 @@
+from collections import defaultdict
+
+# -------- GRAMMAR --------
+grammar = {
+    "S'": ["S"],
+    "S": ["CC"],
+    "C": ["cC", "d"]
+}
+
+# -------- CLOSURE --------
+def closure(items):
+    closure_set = set(items)
+    
+    while True:
+        new_items = set(closure_set)
+        
+        for (lhs, rhs, dot_pos) in closure_set:
+            if dot_pos < len(rhs):
+                symbol = rhs[dot_pos]
+                
+                if symbol in grammar:  # non-terminal
+                    for prod in grammar[symbol]:
+                        new_items.add((symbol, prod, 0))
+        
+        if new_items == closure_set:
+            break
+        closure_set = new_items
+    
+    return closure_set
+
+
+# -------- GOTO --------
+def goto(items, symbol):
+    moved = set()
+    
+    for (lhs, rhs, dot_pos) in items:
+        if dot_pos < len(rhs) and rhs[dot_pos] == symbol:
+            moved.add((lhs, rhs, dot_pos + 1))
+    
+    return closure(moved)
+
+
+# -------- CANONICAL COLLECTION --------
+def canonical_collection():
+    start_item = closure({("S'", "S", 0)})
+    
+    states = [start_item]
+    transitions = []
+    
+    while True:
+        new_states = []
+        
+        for i, state in enumerate(states):
+            symbols = set()
+            
+            for (lhs, rhs, dot_pos) in state:
+                if dot_pos < len(rhs):
+                    symbols.add(rhs[dot_pos])
+            
+            for sym in symbols:
+                new_state = goto(state, sym)
+                
+                if new_state and new_state not in states:
+                    new_states.append(new_state)
+                    transitions.append((i, sym, len(states)))
+                    states.append(new_state)
+                elif new_state:
+                    transitions.append((i, sym, states.index(new_state)))
+        
+        if not new_states:
+            break
+    
+    return states, transitions
+
+
+# -------- RUN --------
+states, transitions = canonical_collection()
+
+# -------- PRINT --------
+for i, state in enumerate(states):
+    print(f"\nI{i}:")
+    for (lhs, rhs, dot_pos) in state:
+        print(f"{lhs} → {rhs[:dot_pos]}•{rhs[dot_pos:]}")
+
+print("\nTransitions:")
+for t in transitions:
+    print(f"I{t[0]} --{t[1]}--> I{t[2]}")
