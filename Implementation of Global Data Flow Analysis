@@ -1,0 +1,54 @@
+# Global Data Flow Analysis - Reaching Definitions
+
+# Basic blocks
+blocks = ["B1", "B2", "B3"]
+
+# GEN and KILL sets
+GEN = {
+    "B1": {"a1", "b1"},   # a=5, b=3
+    "B2": {"a2"},         # a=b+2
+    "B3": {"c1"}          # c=a+b
+}
+
+KILL = {
+    "B1": set(),
+    "B2": {"a1"},         # kills previous 'a'
+    "B3": set()
+}
+
+# CFG (predecessors)
+pred = {
+    "B1": [],
+    "B2": ["B1"],
+    "B3": ["B2"]
+}
+
+# Initialize IN and OUT
+IN = {b: set() for b in blocks}
+OUT = {b: set() for b in blocks}
+
+# Iterative algorithm
+changed = True
+while changed:
+    changed = False
+
+    for b in blocks:
+        # IN[B] = union of OUT[pred]
+        new_in = set()
+        for p in pred[b]:
+            new_in |= OUT[p]
+
+        # OUT[B] = GEN[B] ∪ (IN[B] - KILL[B])
+        new_out = GEN[b] | (new_in - KILL[b])
+
+        if new_in != IN[b] or new_out != OUT[b]:
+            IN[b] = new_in
+            OUT[b] = new_out
+            changed = True
+
+# -------- OUTPUT --------
+print("IN and OUT sets:")
+for b in blocks:
+    print(f"{b}:")
+    print(f"  IN  = {IN[b]}")
+    print(f"  OUT = {OUT[b]}")
