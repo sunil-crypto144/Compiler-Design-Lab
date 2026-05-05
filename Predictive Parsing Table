@@ -1,0 +1,101 @@
+from collections import defaultdict
+
+# Grammar
+grammar = {
+    'E': ['TR'],
+    'R': ['+TR', 'ε'],
+    'T': ['FY'],
+    'Y': ['*FY', 'ε'],
+    'F': ['(E)', 'i']
+}
+
+first = defaultdict(set)
+follow = defaultdict(set)
+
+start_symbol = 'E'
+
+
+# FIRST computation
+def compute_first(symbol):
+    if symbol not in grammar:
+        return {symbol}
+
+    for production in grammar[symbol]:
+        if production == 'ε':
+            first[symbol].add('ε')
+        else:
+            for char in production:
+                temp = compute_first(char)
+                first[symbol] |= (temp - {'ε'})
+                if 'ε' not in temp:
+                    break
+            else:
+                first[symbol].add('ε')
+
+    return first[symbol]
+
+
+# FOLLOW computation
+def compute_follow():
+    follow[start_symbol].add('$')
+
+    for lhs in grammar:
+        for production in grammar[lhs]:
+            for i in range(len(production)):
+                symbol = production[i]
+
+                if symbol in grammar:
+                    next_part = production[i+1:]
+
+                    if next_part:
+                        first_next = set()
+                        for char in next_part:
+                            first_next |= compute_first(char)
+
+                        follow[symbol] |= (first_next - {'ε'})
+
+                        if 'ε' in first_next:
+                            follow[symbol] |= follow[lhs]
+                    else:
+                        follow[symbol] |= follow[lhs]
+
+
+# Compute FIRST
+for non_terminal in grammar:
+    compute_first(non_terminal)
+
+# Compute FOLLOW
+compute_follow()
+
+
+# Predictive Parsing Table
+table = defaultdict(dict)
+
+for lhs in grammar:
+    for production in grammar[lhs]:
+        first_set = set()
+
+        if production == 'ε':
+            first_set.add('ε')
+        else:
+            for char in production:
+                first_set |= (compute_first(char) - {'ε'})
+                if 'ε' not in compute_first(char):
+                    break
+            else:
+                first_set.add('ε')
+
+        for terminal in first_set - {'ε'}:
+            table[lhs][terminal] = production
+
+        if 'ε' in first_set:
+            for terminal in follow[lhs]:
+                table[lhs][terminal] = production
+
+
+# Display Table
+print("Predictive Parsing Table:\n")
+
+for non_terminal in table:
+    for terminal in table[non_terminal]:
+        print(f"M[{non_terminal}, {terminal}] = {non_terminal} -> {table[non_terminal][terminal]}")
