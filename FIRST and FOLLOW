@@ -1,0 +1,87 @@
+from collections import defaultdict
+
+# Grammar definition
+grammar = {
+    'E': ['TR'],
+    'R': ['+TR', 'ε'],
+    'T': ['FY'],
+    'Y': ['*FY', 'ε'],
+    'F': ['(E)', 'i']
+}
+
+first = defaultdict(set)
+follow = defaultdict(set)
+
+start_symbol = 'E'
+
+
+# FIRST Function
+def compute_first(symbol):
+    if symbol not in grammar:
+        return {symbol}
+
+    for production in grammar[symbol]:
+        if production == 'ε':
+            first[symbol].add('ε')
+        else:
+            for char in production:
+                temp = compute_first(char)
+                first[symbol] |= (temp - {'ε'})
+                if 'ε' not in temp:
+                    break
+            else:
+                first[symbol].add('ε')
+
+    return first[symbol]
+
+
+# FOLLOW Function
+def compute_follow():
+    follow[start_symbol].add('$')
+
+    changed = True
+    while changed:
+        changed = False
+        for lhs in grammar:
+            for production in grammar[lhs]:
+                for i in range(len(production)):
+                    symbol = production[i]
+
+                    if symbol in grammar:
+                        next_symbols = production[i+1:]
+
+                        if next_symbols:
+                            first_next = set()
+                            for n in next_symbols:
+                                first_next |= compute_first(n)
+
+                            before = len(follow[symbol])
+                            follow[symbol] |= (first_next - {'ε'})
+
+                            if 'ε' in first_next:
+                                follow[symbol] |= follow[lhs]
+
+                            if len(follow[symbol]) > before:
+                                changed = True
+                        else:
+                            before = len(follow[symbol])
+                            follow[symbol] |= follow[lhs]
+                            if len(follow[symbol]) > before:
+                                changed = True
+
+
+# Compute FIRST
+for non_terminal in grammar:
+    compute_first(non_terminal)
+
+# Compute FOLLOW
+compute_follow()
+
+
+print("FIRST Sets:")
+for non_terminal in first:
+    print(f"FIRST({non_terminal}) = {first[non_terminal]}")
+
+print("\nFOLLOW Sets:")
+for non_terminal in follow:
+    print(f"FOLLOW({non_terminal}) = {follow[non_terminal]}")
