@@ -1,0 +1,64 @@
+# Operator precedence
+precedence = {
+    '+':1, '-':1,
+    '*':2, '/':2,
+    '^':3
+}
+
+# -------- INFIX TO POSTFIX --------
+def infix_to_postfix(expression):
+    stack = []
+    output = []
+
+    for char in expression:
+        if char.isalnum():  # operand
+            output.append(char)
+
+        elif char == '(':
+            stack.append(char)
+
+        elif char == ')':
+            while stack and stack[-1] != '(':
+                output.append(stack.pop())
+            stack.pop()
+
+        else:  # operator
+            while (stack and stack[-1] != '(' and
+                   precedence.get(char, 0) <= precedence.get(stack[-1], 0)):
+                output.append(stack.pop())
+            stack.append(char)
+
+    while stack:
+        output.append(stack.pop())
+
+    return ''.join(output)
+
+
+# -------- INFIX TO PREFIX --------
+def infix_to_prefix(expression):
+    # Reverse expression
+    expression = expression[::-1]
+
+    # Swap brackets
+    expression = list(expression)
+    for i in range(len(expression)):
+        if expression[i] == '(':
+            expression[i] = ')'
+        elif expression[i] == ')':
+            expression[i] = '('
+
+    expression = ''.join(expression)
+
+    # Convert to postfix
+    postfix = infix_to_postfix(expression)
+
+    # Reverse postfix → prefix
+    return postfix[::-1]
+
+
+# -------- TEST --------
+expr = "(A+B)*(C-D)"
+
+print("Infix   :", expr)
+print("Postfix :", infix_to_postfix(expr))
+print("Prefix  :", infix_to_prefix(expr))
