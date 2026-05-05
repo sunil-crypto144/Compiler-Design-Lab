@@ -1,0 +1,64 @@
+# Simple Code Generator
+
+def generate_code(tac):
+    reg_count = 0
+    code = []
+    reg_map = {}
+
+    def get_reg(var):
+        nonlocal reg_count
+        if var not in reg_map:
+            reg_map[var] = f"R{reg_count}"
+            reg_count += 1
+        return reg_map[var]
+
+    for instr in tac:
+        parts = instr.split()
+
+        if len(parts) == 5:  
+            # Format: t1 = C * D
+            result = parts[0]
+            arg1 = parts[2]
+            op = parts[3]
+            arg2 = parts[4]
+
+            r1 = get_reg(arg1)
+            r2 = get_reg(arg2)
+            rres = get_reg(result)
+
+            code.append(f"MOV {r1}, {arg1}")
+
+            if op == '+':
+                code.append(f"ADD {r1}, {arg2}")
+            elif op == '-':
+                code.append(f"SUB {r1}, {arg2}")
+            elif op == '*':
+                code.append(f"MUL {r1}, {arg2}")
+            elif op == '/':
+                code.append(f"DIV {r1}, {arg2}")
+
+            code.append(f"MOV {rres}, {r1}")
+
+        elif len(parts) == 3:
+            # Format: A = t2
+            dest = parts[0]
+            src = parts[2]
+            r = get_reg(src)
+            code.append(f"MOV {dest}, {r}")
+
+    return code
+
+
+# -------- INPUT TAC --------
+tac = [
+    "t1 = C * D",
+    "t2 = B + t1",
+    "A = t2"
+]
+
+# -------- GENERATE --------
+assembly = generate_code(tac)
+
+print("Generated Code:")
+for line in assembly:
+    print(line)
